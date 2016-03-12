@@ -1,0 +1,54 @@
+# -*- coding: utf-8; indent-tabs-mode: nil; tab-width: 2; -*-
+
+---
+# - name: (os=Ubuntu) Install OS dependencies
+#   apt: name=git,python-pip,python-dev,gcc state=present
+#   sudo: yes
+#   when: ansible_os_family == 'Debian' and ansible_distribution_release == 'trusty'
+
+# - name: Install python virtualenv
+#   pip: name=virtualenv state=present
+#   sudo: yes
+
+- name: Clone project repository
+  git: repo={{ git_repo_url }} dest=/home/{{ username }}/{{ project_name }} version={{ git_branch }}
+  register: project_install
+  notify:
+    - nginx_restart
+
+- name: Create project virtualenv folder
+  command: virtualenv {{ item }}  creates={{ item }}
+  with_items:
+  - /home/{{ username }}/{{ project_name }}/venv
+
+- name: Install project requirements with pip
+  pip:
+    requirements={{ requirements_file_path }}
+    virtualenv=/home/{{ username }}/{{ project_name }}/venv
+  when: requirements_file_path is defined and install_type is defined and install_type == 1
+
+# - name: Install project requirements with setup.py
+#   command: "venv/bin/python {{ setup_file_path }} install"
+#   with_items: setup_file_path
+#   when: setup_file_path is defined and install_type is defined and install_type == 2
+#   args:
+#     chdir: /home/{{ username }}/{{ project_name }}/
+
+- name: Copy project settings file
+  template:
+    src=files/{{ project_name }}/settings.py
+    dest={{ settings_file_path }} owner={{ username }} group={{ username }} mode=0554
+  when: settings_file_path is defined
+  notify:
+    - nginx_restart
+
+- name: Install python MySQL module
+  pip: name=mysqlclient virtualenv={{ item }}/venv state=present
+  with_items:
+  - /home/{{ username }}/{{ project_name }}
+
+- name: Migrate project database
+  command: "/home/{{ username }}/{{ project_name }}/venv/bin/python {{ manage_file_path }} migrate --noinput"
+  when: manage_file_path is defined
+  notify:
+    - mysql_restart

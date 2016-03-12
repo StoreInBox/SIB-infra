@@ -1,0 +1,51 @@
+# -*- coding: utf-8; indent-tabs-mode: nil; tab-width: 2; -*-
+
+
+---
+- name: (os=Ubuntu) Install static OS dependencies
+  apt: name=npm,nodejs-legacy,rubygems-integration state=present
+  sudo: yes
+  register: dependencies
+  when: ansible_os_family == 'Debian' and ansible_distribution_release == 'trusty'
+
+- name: Install Ruby dependencies
+  command: gem install sass
+  when: dependencies|changed
+  sudo: yes
+
+- name: Install npm packages based on package.json
+  npm: path={{ npm_path }} global=yes state=present
+  when: npm_path is defined
+  sudo: yes
+
+- name: Install imagemin using npm
+  npm: name=grunt-contrib-imagemin path={{ npm_path }} global=yes state=present
+  when: npm_path is defined
+  sudo: yes
+
+- name: Install bower using npm
+  npm: name=bower global=yes state=present
+  sudo: yes
+
+- name: Install bower packages based on bower.json
+  bower: path={{ bower_path }} state=present
+  when: bower_path is defined
+
+- name: Install grunt using npm
+  npm: name=grunt-cli global=yes state=present
+  sudo: yes
+
+- name: Compile static files with Grunt
+  command: grunt --gruntfile {{ grunt_path }}/gruntfile.js build
+  when: grunt_path is defined
+  environment:
+    LC_ALL: en_US.UTF-8
+    LANG: en_US.UTF-8
+  notify:
+    - nginx_restart
+
+- name: Collect static files
+  command: "/home/{{ username }}/{{ project_name }}/venv/bin/python {{ manage_file_path }} collectstatic --noinput"
+  when: manage_file_path is defined
+  notify:
+    - nginx_restart

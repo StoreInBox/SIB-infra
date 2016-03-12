@@ -1,0 +1,10 @@
+# -*- coding: utf-8; indent-tabs-mode: nil; tab-width: 2; -*-
+
+---
+- name: nginx_check_config
+  command: service nginx configtest
+  sudo: yes
+
+- name: nginx_restart
+  service: name=nginx state=restarted
+  sudo: yes

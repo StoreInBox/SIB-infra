@@ -1,0 +1,7 @@
+# -*- coding: utf-8; indent-tabs-mode: nil; tab-width: 2; -*-
+
+---
+- name: Install server dependencies
+  apt: name=libxml2-dev,libxslt1-dev  state=present update_cache=yes
+  sudo: yes
+  when: ansible_os_family == 'Debian' and ansible_distribution_release == 'trusty'

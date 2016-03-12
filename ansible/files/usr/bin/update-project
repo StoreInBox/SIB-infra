@@ -1,0 +1,58 @@
+#!/bin/bash
+# -*- coding: utf-8; indent-tabs-mode: nil; tab-width: 4; -*-
+#
+# {{ ansible_managed }}
+
+set -e
+
+HOME_DIR="/home/{{ username }}"
+project_name="{{ project_name }}"
+
+if [ "$(whoami)" != "{{ username }}" ]; then
+    echo "Please execute this script as {{ username }} user."
+    exit 1
+fi
+
+PROJECT_DIR="$HOME_DIR/$project_name"
+
+if [ ! -d "$PROJECT_DIR" ]; then
+    echo "Project $PROJECT_DIR doesn't exist, aborting."
+    exit
+fi
+
+ENV_DIR="$HOME_DIR/$project_name/venv"
+
+if [ ! -d "$ENV_DIR" ]; then
+    echo "Virtual environment $ENV_DIR doesn't exist, aborting."
+    exit
+fi
+
+echo "[+] Changing working directory to $PROJECT_DIR..." && echo
+cd "$PROJECT_DIR"
+
+echo "[+] Checking out {{ git_branch }} branch..." && echo
+git checkout {{ git_branch }} > /dev/null
+
+echo "[+] Pulling updates for the {{ git_branch }} branch..." && echo
+git pull origin {{ git_branch }} > /dev/null
+
+echo "[+] Removing .pyc files..." && echo
+find . -name "*.pyc" -exec rm -rf {} \;
+
+echo "[+] Installing project dependencies..." && echo
+$ENV_DIR/bin/python {{ setup_file_path }} install > /dev/null
+
+echo "[+] Applying database migrations..." && echo
+$ENV_DIR/bin/python {{ manage_file_path }} migrate --noinput > /dev/null
+
+echo "[+] Compiling grunt files..."
+cd {{grunt_path }} && grunt build > /dev/null
+
+echo "[+] Collecting static files..." && echo
+$ENV_DIR/bin/python {{ manage_file_path }} collectstatic --noinput > /dev/null
+
+echo "[+] Restaring Nginx service..." && echo
+sudo service nginx restart > /dev/null
+
+echo "[+] Restarting uWSGI service..." && echo
+sudo service uwsgi restart > /dev/null

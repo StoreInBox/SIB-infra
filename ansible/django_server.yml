@@ -1,0 +1,50 @@
+# -*- coding: utf-8; indent-tabs-mode: nil; tab-width: 2; -*-
+
+---
+- name: Install and configure Django server
+  hosts: sib_servers
+  remote_user: "{{ username }}"
+  vars:
+    - setup_file_path:
+        /home/{{ username }}/{{ project_name }}/setup.py
+    # - requirements_file_path:
+    #     /home/{{ username }}/{{ project_name }}/requirements/dev.txt
+    - settings_file_path:
+        /home/{{ username }}/{{ project_name }}/main/server/settings/custom.py
+    - manage_file_path:
+        /home/{{ username }}/{{ project_name }}/manage.py
+    - wsgi_module:
+        "main.server.wsgi:application"
+    - grunt_path:
+        /home/{{ username }}/{{ project_name }}/frontend
+    - npm_path:
+        /home/{{ username }}/{{ project_name }}/frontend
+    - bower_path:
+        /home/{{ username }}/{{ project_name }}/frontend
+    - static_path:
+        /home/{{ username }}/{{ project_name }}/collected_static/
+    - media_path:
+        /home/{{ username }}/{{ project_name }}/media/
+
+  tasks:
+  # - include: initial_server.yml
+  - include: tasks/mysql_server.yml
+  # - include: tasks/django_server.yml
+  # - include: tasks/frontend_dependencies.yml
+  # - include: tasks/uwsgi.yml
+  # - include: tasks/nginx_server.yml
+
+  - name: Copy management scripts
+    template: src=files/{{ item.src }}
+              dest={{ item.dest }} owner={{ username }} group={{ username }} mode=0744
+    sudo: yes
+    with_items:
+    - {
+        src: "/usr/bin/update-project",
+        dest: "/usr/bin/update-{{ project_name }}-project"
+      }
+
+  handlers:
+  - include: handlers/mysql_service.yml
+  - include: handlers/nginx_service.yml
+  - include: handlers/uwsgi_service.yml

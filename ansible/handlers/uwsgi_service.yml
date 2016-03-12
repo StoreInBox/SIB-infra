@@ -1,0 +1,10 @@
+# -*- coding: utf-8; indent-tabs-mode: nil; tab-width: 2; -*-
+
+---
+- name: uwsgi_start
+  service: name=uwsgi state=started
+  sudo: yes
+
+- name: uwsgi_restart
+  service: name=uwsgi state=restarted
+  sudo: yes

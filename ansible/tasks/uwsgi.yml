@@ -1,0 +1,26 @@
+# -*- coding: utf-8; indent-tabs-mode: nil; tab-width: 2; -*-
+
+---
+- name: Install uWSGI
+  pip: name=uwsgi state=present
+  sudo: yes
+
+- name: Create uWSGI source folder
+  file: path=/etc/uwsgi/sites state=directory mode=0755
+  sudo: yes
+
+- name: Copy uWSGI initial file
+  template: src=files{{ item }} dest={{ item }} mode=0644
+  sudo: yes
+  with_items:
+  - /etc/init/uwsgi.conf
+  notify:
+  - uwsgi_restart
+
+- name: Copy uWSGI sites configuration files
+  template: src=files{{ item }}/default.ini dest={{ item }}/{{ project_name }}.ini mode=0644
+  sudo: yes
+  with_items:
+  - /etc/uwsgi/sites
+  notify:
+  - uwsgi_restart

@@ -1,0 +1,4 @@
+sib-server ansible_ssh_host=128.199.63.47
+
+[sib_servers]
+sib-server

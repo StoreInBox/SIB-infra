@@ -1,0 +1,23 @@
+# -*- coding: utf-8; indent-tabs-mode: nil; tab-width: 2; -*-
+
+---
+- name: (os=Ubuntu) Install MySQL server
+  apt: name=mysql-server,python-mysqldb,libmysqlclient-dev state=present
+  sudo: yes
+  when: ansible_os_family == 'Debian' and ansible_distribution_release == 'trusty'
+  notify:
+    - mysql_enable
+    - mysql_restart
+
+- name: (os=Ubuntu) Start MySQL server
+  service: name=mysql state=started
+
+- name: Create databases
+  mysql_db: login_host={{ db_host }} name={{ db_name }} encoding='utf8'
+  notify:
+    - mysql_restart
+
+- name: Create database users
+  mysql_user: host={{ db_host }} name={{ db_username }} password={{ db_password }} priv={{ db_name }}.*:ALL
+  notify:
+    - mysql_restart

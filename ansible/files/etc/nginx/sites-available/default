@@ -1,0 +1,19 @@
+# {{ ansible_managed }}
+
+server {
+    listen 80;
+    server_name {{ server_name }};
+
+    location /static/ {
+        alias {{ static_path }};
+    }
+
+    location /media/ {
+        alias {{ media_path }};
+    }
+
+    location / {
+        include         uwsgi_params;
+        uwsgi_pass      unix:/home/{{ username }}/{{ project_name }}/{{ project_name }}.sock;
+    }
+}
