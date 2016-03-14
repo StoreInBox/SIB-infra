@@ -30,6 +30,8 @@
 - name: Install bower packages based on bower.json
   bower: path={{ bower_path }} state=present
   when: bower_path is defined
+  tags:
+    - restart
 
 - name: Install grunt using npm
   npm: name=grunt-cli global=yes state=present
@@ -43,9 +45,13 @@
     LANG: en_US.UTF-8
   notify:
     - nginx_restart
+  tags:
+    - restart
 
 - name: Collect static files
   command: "/home/{{ username }}/{{ project_name }}/venv/bin/python {{ manage_file_path }} collectstatic --noinput"
   when: manage_file_path is defined
   notify:
     - nginx_restart
+  tags:
+    - restart

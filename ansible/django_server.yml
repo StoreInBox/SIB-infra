@@ -27,22 +27,22 @@
         /home/{{ username }}/{{ project_name }}/media/
 
   tasks:
-  # - include: initial_server.yml
+  - include: tasks/initial_server.yml
   - include: tasks/mysql_server.yml
-  # - include: tasks/django_server.yml
-  # - include: tasks/frontend_dependencies.yml
-  # - include: tasks/uwsgi.yml
-  # - include: tasks/nginx_server.yml
+  - include: tasks/django_server.yml
+  - include: tasks/frontend_dependencies.yml
+  - include: tasks/uwsgi.yml
+  - include: tasks/nginx_server.yml
 
-  - name: Copy management scripts
-    template: src=files/{{ item.src }}
-              dest={{ item.dest }} owner={{ username }} group={{ username }} mode=0744
-    sudo: yes
-    with_items:
-    - {
-        src: "/usr/bin/update-project",
-        dest: "/usr/bin/update-{{ project_name }}-project"
-      }
+  # - name: Copy management scripts
+  #   template: src=files/{{ item.src }}
+  #             dest={{ item.dest }} owner={{ username }} group={{ username }} mode=0744
+  #   sudo: yes
+  #   with_items:
+  #   - {
+  #       src: "/usr/bin/update-project",
+  #       dest: "/usr/bin/update-{{ project_name }}-project"
+  #     }
 
   handlers:
   - include: handlers/mysql_service.yml

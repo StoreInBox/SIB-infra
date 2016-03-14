@@ -1,3 +1,13 @@
+Commands
+========
+
+Restart
+
+.. code-block:: bash
+
+    ansible-playbook -i hosts django_server.yml --tags "restart,dropdb"
+
+
 Usage
 =====
 

@@ -11,13 +11,26 @@
 
 - name: (os=Ubuntu) Start MySQL server
   service: name=mysql state=started
+  tags:
+    - restart
+
+- name: (os=Ubuntu) Drop MySQL database
+  mysql_db: name={{ db_name }} state=absent login_user=root
+  notify:
+    - mysql_restart
+  tags:
+    - dropdb
 
 - name: Create databases
-  mysql_db: login_host={{ db_host }} name={{ db_name }} encoding='utf8'
+  mysql_db: login_host={{ db_host }} name={{ db_name }} encoding='utf8' login_user=root
   notify:
     - mysql_restart
+  tags:
+    - dropdb
 
 - name: Create database users
-  mysql_user: host={{ db_host }} name={{ db_username }} password={{ db_password }} priv={{ db_name }}.*:ALL
+  mysql_user: host={{ db_host }} name={{ db_username }} password={{ db_password }} priv={{ db_name }}.*:ALL login_user=root
   notify:
     - mysql_restart
+  tags:
+    - dropdb
